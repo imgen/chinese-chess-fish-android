@@ -52,7 +52,9 @@ android {
         resources.excludes.addAll(
             listOf("/META-INF/{AL2.0,LGPL2.1}",
                 "META-INF/LICENSE.md",
-                "META-INF/LICENSE-notice.md")
+                "META-INF/LICENSE-notice.md",
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties")
         )
     }
 
@@ -120,6 +122,7 @@ dependencies {
     implementation("com.igormaznitsa:jbbp:3.0.0")
     // https://github.com/PhilJay/MPAndroidChart
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("com.azure:azure-messaging-servicebus:7.17.8")
     implementation(project(":filepicker"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

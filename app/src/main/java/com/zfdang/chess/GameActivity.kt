@@ -2,7 +2,6 @@ package com.zfdang.chess
 
 import android.annotation.SuppressLint
 import android.content.ClipboardManager
-import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,19 +15,22 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.github.mikephil.charting.components.Description
 import com.zfdang.chess.adapters.HistoryAndTrendAdapter
-import com.zfdang.chess.controllers.GameController
 import com.zfdang.chess.controllers.ControllerListener
+import com.zfdang.chess.controllers.GameController
 import com.zfdang.chess.databinding.ActivityGameBinding
 import com.zfdang.chess.gamelogic.GameStatus
+import com.zfdang.chess.gamelogic.Move
+import com.zfdang.chess.gamelogic.Piece
+import com.zfdang.chess.gamelogic.Position
+import com.zfdang.chess.gamelogic.Rule
 import com.zfdang.chess.openbook.BHOpenBook
+import com.zfdang.chess.utils.ToastUtils
 import com.zfdang.chess.views.ChessView
 
-
-class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerListener,
+class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListener,
     View.OnClickListener, SettingDialogFragment.SettingDialogListener {
 
     // 防止重复点击
-    private val MIN_CLICK_DELAY_TIME: Int = 100
     private var curClickTime: Long = 0
     private var lastClickTime: Long = 0
 
@@ -110,12 +112,12 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
             text = ""
         }
         val xAxis = chart.xAxis
-        xAxis.setGranularityEnabled(true)
+        xAxis.isGranularityEnabled = true
         xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
         xAxis.granularity = 1f
         val yAxis = chart.axisLeft
         yAxis.setDrawGridLines(false)
-        yAxis.setDrawZeroLine(true);
+        yAxis.setDrawZeroLine(true)
         val rightAxis = chart.axisRight
         rightAxis.setDrawGridLines(false)
 
@@ -146,6 +148,19 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
             controller.toggleComputerAutoPlay()
             binding.autoplaybt.setImageResource(R.drawable.pause_circle)
         }
+
+        Globals.messenger.onNewMessage = {
+            message ->
+                runOnUiThread {
+                    handleCheckmateClientMessage(message)
+                }
+        }
+        Globals.messenger.startProcessingMessages()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Globals.messenger.close()
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -156,54 +171,57 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         }
         curClickTime = lastClickTime
 
-        if (event!!.action === MotionEvent.ACTION_DOWN) {
-            val x = event!!.x
-            val y = event!!.y
+        if (event!!.action == MotionEvent.ACTION_DOWN) {
+            val x = event.x
+            val y = event.y
             val pos = chessView.getPosByCoord(x, y)
-            if(pos == null) {
-                // pos is not valid
+                ?: // pos is not valid
                 return false
-            }
-            controller.touchPosition(pos);
-            Log.d("PlayActivity", "onTouch: x = $x, y = $y, pos = " + pos.toString())
+            controller.touchPosition(pos)
+            v?.performClick()
+            Log.d("PlayActivity", "onTouch: x = $x, y = $y, pos = $pos")
         }
         return false
     }
 
     // create function to set status text
-    fun setStatusText(text: String) {
+    private fun setStatusText(text: String) {
         binding.statustv.text = text
     }
 
-    fun showNewGameConfirmDialog() {
+    private fun startNewGame() {
+        controller.startNewGame()
+        historyAndTrendAdapter.update()
+        if(controller.settings.red_go_first) {
+            setStatusText("新游戏，红方先行")
+        } else {
+            setStatusText("新游戏，黑方先行")
+        }
+        // hide choice buttons
+        if(binding.choice1bt.visibility == View.VISIBLE){
+            binding.choice1bt.visibility = View.GONE
+            binding.choice2bt.visibility = View.GONE
+            binding.choice3bt.visibility = View.GONE
+        }
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            if(controller.isComputerPlaying && controller.isAutoPlay && !controller.settings.red_go_first){
+                controller.computerForward()
+            }
+        }, 1000)
+    }
+
+    private fun showNewGameConfirmDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("确定开始新游戏?")
         builder.setMessage("你是否要放弃当前的游戏，开始新游戏呢?")
 
-        builder.setPositiveButton("开始新游戏") { dialog, which ->
+        builder.setPositiveButton("开始新游戏") { _, _ ->
             // User clicked Yes button
-            controller.startNewGame()
-            historyAndTrendAdapter.update()
-            if(controller.settings.red_go_first) {
-                setStatusText("新游戏，红方先行")
-            } else {
-                setStatusText("新游戏，黑方先行")
-            }
-            // hide choice buttons
-            if(binding.choice1bt.visibility == View.VISIBLE){
-                binding.choice1bt.visibility = View.GONE;
-                binding.choice2bt.visibility = View.GONE;
-                binding.choice3bt.visibility = View.GONE;
-            }
-
-            Handler(Looper.getMainLooper()).postDelayed({
-                if(controller.isComputerPlaying && controller.isAutoPlay && !controller.settings.red_go_first){
-                    controller.computerForward()
-                }
-            }, 1000)
+            startNewGame()
         }
 
-        builder.setNegativeButton("继续当前游戏") { dialog, which ->
+        builder.setNegativeButton("继续当前游戏") { dialog, _ ->
             // User clicked No button
             dialog.dismiss()
         }
@@ -213,19 +231,19 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         dialog.show()
     }
 
-    fun saveThenExit() {
+    private fun saveThenExit() {
         // in case there is any ongoing searching task
         controller.player.stopSearch()
         // delay 300 ms to save game status
         Thread.sleep(100)
         if(!isFromManual){
             // 如果从打谱界面进入，不保存游戏状态
-            controller.saveGameStatus();
+            controller.saveGameStatus()
         }
         finish()
     }
 
-    fun showInputFENDialog() {
+    private fun showInputFENDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("从FEN串开始新游戏")
         builder.setMessage("请输入棋局的FEN串：")
@@ -246,14 +264,14 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         builder.setView(input)
 
         // Set up the buttons
-        builder.setPositiveButton("确定", DialogInterface.OnClickListener { dialog, which ->
+        builder.setPositiveButton("确定") { _, _ ->
             val userInput = input.text.toString()
             controller.startFENGame(userInput)
             // Handle the input string here
-        })
-        builder.setNegativeButton("取消", DialogInterface.OnClickListener { dialog, which ->
+        }
+        builder.setNegativeButton("取消") { dialog, _ ->
             dialog.cancel()
-        })
+        }
 
         builder.show()
     }
@@ -283,9 +301,9 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
                     binding.autoplaybt.setImageResource(R.drawable.play_circle)
                     setStatusText("开启自动走棋")
 
-                    if(controller.isBlackTurn() && controller.isComputerPlaying){
+                    if(controller.isBlackTurn && controller.isComputerPlaying){
                         // 如果电脑执黑，自动走棋
-                        controller.computerForward();
+                        controller.computerForward()
                     }
                 } else {
                     binding.autoplaybt.setImageResource(R.drawable.pause_circle)
@@ -296,7 +314,7 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
                 controller.stopSearchNow()
             }
             binding.playeraltbt -> {
-                controller.computerAskForMultiPV();
+                controller.computerAskForMultiPV()
             }
             binding.optionbt -> {
                 // Show the dialog
@@ -327,7 +345,7 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
             }
             binding.helpbt -> {
                 setStatusText("正在搜索建议着法...")
-                controller.playerAskForHelp();
+                controller.playerAskForHelp()
             }
             binding.stophelpbt -> {
                 controller.stopSearchNow()
@@ -351,27 +369,27 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
                 historyAndTrendAdapter.update()
             }
             binding.exitbt -> {
-                saveThenExit();
+                saveThenExit()
             }
             binding.choice1bt -> {
                 setStatusText("选择着数1")
-                binding.choice1bt.visibility = View.GONE;
-                binding.choice2bt.visibility = View.GONE;
-                binding.choice3bt.visibility = View.GONE;
+                binding.choice1bt.visibility = View.GONE
+                binding.choice2bt.visibility = View.GONE
+                binding.choice3bt.visibility = View.GONE
                 controller.selectMultiPV(0)
             }
             binding.choice2bt -> {
                 setStatusText("选择着数2")
-                binding.choice1bt.visibility = View.GONE;
-                binding.choice2bt.visibility = View.GONE;
-                binding.choice3bt.visibility = View.GONE;
+                binding.choice1bt.visibility = View.GONE
+                binding.choice2bt.visibility = View.GONE
+                binding.choice3bt.visibility = View.GONE
                 controller.selectMultiPV(1)
             }
             binding.choice3bt -> {
                 setStatusText("选择着数3")
-                binding.choice1bt.visibility = View.GONE;
-                binding.choice2bt.visibility = View.GONE;
-                binding.choice3bt.visibility = View.GONE;
+                binding.choice1bt.visibility = View.GONE
+                binding.choice2bt.visibility = View.GONE
+                binding.choice3bt.visibility = View.GONE
                 controller.selectMultiPV(2)
             }
         }
@@ -383,16 +401,16 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         when(status) {
             GameStatus.ILLEGAL -> {
                 message?.let { setStatusText(it) }
-                soundPlayer.illegal();
+                soundPlayer.illegal()
             }
             GameStatus.MOVE -> {
                 message?.let { setStatusText(it) }
-                soundPlayer.move();
+                soundPlayer.move()
 
                 if(binding.choice1bt.visibility == View.VISIBLE){
-                    binding.choice1bt.visibility = View.GONE;
-                    binding.choice2bt.visibility = View.GONE;
-                    binding.choice3bt.visibility = View.GONE;
+                    binding.choice1bt.visibility = View.GONE
+                    binding.choice2bt.visibility = View.GONE
+                    binding.choice3bt.visibility = View.GONE
                 }
             }
             GameStatus.CAPTURE -> {
@@ -422,12 +440,12 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
 
                 // show choice buttons
                 if(binding.choice1bt.visibility == View.GONE){
-                    binding.choice1bt.visibility = View.VISIBLE;
-                    if(controller.getMultiPVSize() >= 2){
-                        binding.choice2bt.visibility = View.VISIBLE;
+                    binding.choice1bt.visibility = View.VISIBLE
+                    if(controller.multiPVSize >= 2){
+                        binding.choice2bt.visibility = View.VISIBLE
                     }
-                    if(controller.getMultiPVSize() >= 3){
-                        binding.choice3bt.visibility = View.VISIBLE;
+                    if(controller.multiPVSize >= 3){
+                        binding.choice3bt.visibility = View.VISIBLE
                     }
                 }
 
@@ -443,7 +461,7 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         historyAndTrendAdapter.update()
     }
 
-    // create fun to handle onbackpressed
+    @Deprecated("Only for backwards compatability")
     override fun onBackPressed() {
         // save game to file
         super.onBackPressed()
@@ -451,12 +469,12 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
     }
 
     override fun onGameEvent(event: GameStatus?) {
-        onGameEvent(event, null);
+        onGameEvent(event, null)
     }
 
     override fun runOnUIThread(runnable: Runnable?) {
-            runOnUiThread(runnable);
-        }
+            runOnUiThread(runnable)
+    }
 
     override fun onDialogPositiveClick() {
         // save setting values to variables in settings
@@ -467,4 +485,112 @@ class GameActivity() : AppCompatActivity(), View.OnTouchListener, ControllerList
         // do nothing
     }
 
+    companion object Constants {
+        const val COMMAND_NEW_GAME_WITH_RED_FIRST: String = "NGRF"
+        const val COMMAND_NEW_GAME_WITH_DARK_FIRST: String = "NGDF"
+        const val COMMAND_WITHDRAW_LAST_MOVE: String = "WLM"
+        const val MIN_CLICK_DELAY_TIME: Int = 100
+    }
+
+    private fun handleCheckmateClientMessage(message: String) {
+        when (message) {
+            COMMAND_NEW_GAME_WITH_RED_FIRST -> {
+                ToastUtils.showToast("新对弈, 红方(用户)先行")
+                controller.settings.red_go_first = true
+                startNewGame()
+            }
+            COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
+                ToastUtils.showToast("新对弈, 黑方(电脑)先行")
+                controller.settings.red_go_first = false
+                startNewGame()
+            }
+            COMMAND_WITHDRAW_LAST_MOVE -> {
+                ToastUtils.showToast("撤销上一步棋")
+                withdrawLastMoveDelayed()
+            }
+            else -> if (isChineseChessMove(message)) {
+                ToastUtils.showToast("收到红方(用户)着法$message")
+                val move = parseMoveMessage(message)
+                moveRedDelayed(move)
+            } else {
+                sendInvalidMove()
+            }
+        }
+    }
+
+    private fun sendInvalidMove() {
+        try {
+            Globals.messenger.send("无效着法")
+        } catch (e: Exception) {
+            ToastUtils.showToast("无法发送信息到客户端")
+        }
+    }
+
+    private fun moveRedDelayed(move: Move) {
+        if (controller.state != GameController.ControllerState.WAITING_FOR_USER) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                moveRedDelayed(move)
+            }, 3000)
+            return
+        }
+
+        moveRed(move)
+    }
+
+    private fun moveRed(move: Move) {
+        val game = controller.game
+
+        // If game's start position is not empty, clear it first
+        if (game.startPos != null) {
+            game.clearStartPos()
+            onGameEvent(GameStatus.SELECT, "取消选择棋子")
+        }
+        if (move.fromPosition.equals(move.toPosition)) {
+            sendInvalidMove()
+            return
+        }
+        val piece = game.currentBoard.getPieceByPosition(move.fromPosition)
+        if (Piece.isValid(piece) && Piece.isRed(piece)) {
+            val tempMove = Move(move.fromPosition, move.toPosition, game.currentBoard)
+            if (Rule.isValidMove(tempMove, game.currentBoard)) {
+                controller.touchPosition(move.fromPosition)
+                controller.touchPosition(move.toPosition)
+                return
+            }
+        }
+
+        sendInvalidMove()
+    }
+
+    private fun withdrawLastMoveDelayed() {
+        if (controller.state != GameController.ControllerState.WAITING_FOR_USER) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                withdrawLastMoveDelayed()
+            }, 3000)
+            return
+        }
+
+        controller.stepBack()
+        controller.stepBack()
+    }
+
+    private fun isChineseChessMove(text: String): Boolean {
+        if (text.length != 4) {
+            return false
+        }
+
+        for (ch in text.toCharArray()) {
+            if (!Character.isDigit(ch)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun parseMoveMessage(moveText: String): Move {
+        val fromPosition = Position(moveText[0].digitToInt(), moveText[1].digitToInt())
+        val toPosition = Position(moveText[2].digitToInt(), moveText[3].digitToInt())
+        return Move(fromPosition, toPosition)
+    }
 }

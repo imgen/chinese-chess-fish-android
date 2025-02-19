@@ -18,8 +18,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.zfdang.chess.adapters.HistoryAndTrendAdapter
-import com.zfdang.chess.utils.CopyAssetsUtil
-import com.zfdang.chess.utils.PathUtil
+import com.zfdang.chess.utils.CopyAssetsUtils
+import com.zfdang.chess.utils.PathUtils
 import com.zfdang.chess.controllers.ControllerListener
 import com.zfdang.chess.controllers.ManualController
 import com.zfdang.chess.databinding.ActivityManualBinding
@@ -110,7 +110,7 @@ class ManualActivity() : AppCompatActivity(), ControllerListener,
             initManual()
         }, 500)
 
-        last_selected_path = PathUtil.getInternalAppFilesDir(this,"XQF")
+        last_selected_path = PathUtils.getInternalAppFilesDir(this,"XQF")
     }
 
     private fun initManual() {
@@ -138,7 +138,7 @@ class ManualActivity() : AppCompatActivity(), ControllerListener,
             Thread {
                 // copy all XQF files from assets to external storage, when it's the first run of this version
 
-                val destPath = PathUtil.getInternalAppFilesDir(this,"XQF")
+                val destPath = PathUtils.getInternalAppFilesDir(this,"XQF")
 
                 // remove path if exists
                 val file = File(destPath)
@@ -151,7 +151,7 @@ class ManualActivity() : AppCompatActivity(), ControllerListener,
                 }
 
                 // copy assets to destPath
-                CopyAssetsUtil.copyAssets(this, "XQF", destPath)
+                CopyAssetsUtils.copyAssets(this, "XQF", destPath)
                 runOnUiThread {
                     setFirstRunVersion(currentVersion)
                     waitingDialog.dismiss()
@@ -259,7 +259,7 @@ class ManualActivity() : AppCompatActivity(), ControllerListener,
         val types = arrayListOf<FileType>(XQFFileType())
         FilePickerManager
             .from(this)
-            .setRootPath(PathUtil.getInternalAppFilesDir(this,"XQF"))
+            .setRootPath(PathUtils.getInternalAppFilesDir(this,"XQF"))
             .setStartPath(last_selected_path)
             .maxSelectable(1)
             .registerFileType(types)

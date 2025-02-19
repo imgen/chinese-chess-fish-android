@@ -5,6 +5,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.zfdang.chess.ChessApp;
+import com.zfdang.chess.Globals;
 import com.zfdang.chess.Settings;
 import com.zfdang.chess.gamelogic.Board;
 import com.zfdang.chess.gamelogic.Game;
@@ -17,6 +18,7 @@ import com.zfdang.chess.gamelogic.Rule;
 import com.zfdang.chess.openbook.BHOpenBook;
 import com.zfdang.chess.openbook.BookData;
 import com.zfdang.chess.openbook.OpenBook;
+import com.zfdang.chess.utils.ToastUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.petero.droidfish.player.ComputerPlayer;
@@ -32,7 +34,7 @@ import java.util.Map;
 
 public class GameController implements EngineListener, SearchListener {
     public ComputerPlayer player = null;
-    private String engineName = "pikafish";
+    private static final String engineName = "pikafish";
     public String engineInfo; // returned by engine
 
     // 如果开启了电脑的着法随机选项，那么前N步会随机选择一个着法。这个数值不易过大，否则电脑棋力下降太多
@@ -40,43 +42,36 @@ public class GameController implements EngineListener, SearchListener {
 
     public Game game = null;
     private int searchId;
-    private long searchStartTime;
-    private long searchEndTime;
 
-    public boolean isComputerPlaying = true;
-    public boolean isAutoPlay = true;
+    public boolean isComputerPlaying;
+    public boolean isAutoPlay;
 
     public boolean isShowTrends = false;
 
-    private ControllerListener gui = null;
+    private final ControllerListener gui;
     ArrayList<PvInfo> multiPVs = new ArrayList<>();
 
-    BHOpenBook bhBook = null;
+    BHOpenBook bhBook;
 
     public ControllerState state;
     public ControllerState preEvalState;
 
-    public Settings settings = null;
+    public Settings settings;
 
     public void toggleShowTrends() {
         isShowTrends = !isShowTrends;
     }
 
     // create enum for controller state
-    enum ControllerState {
-        IDLE,
+    public enum ControllerState {
         WAITING_FOR_USER, // 红方出子
         WAITING_FOR_USER_MULTIPV, // 红方寻求帮助，等待多PV结果
         WAITING_FOR_ENGINE, // 黑方出子
         WAITING_FOR_ENGINE_BESTMV, // 黑方寻找最佳着法
         WAITING_FOR_ENGINE_MULTIPV, // 黑方变着，等待多PV结果
         WAITING_FOR_EVAL, // 等待eval的结果
-        MANUAL_MODE, // 打谱模式
     }
 
-    public boolean isNonGameMode() {
-        return state == ControllerState.MANUAL_MODE;
-    }
     public GameController(ControllerListener cListener) {
         gui = cListener;
 
@@ -163,7 +158,7 @@ public class GameController implements EngineListener, SearchListener {
             gui.onGameEvent(GameStatus.ILLEGAL, "搜索中，请稍候...");
             return false;
         }
-        if (game.history.size() > 0) {
+        if (!game.history.isEmpty()) {
             Game.HistoryRecord record = game.undoMove();
             setSatate(record.isRedMove);
             gui.onGameEvent(GameStatus.MOVE, game.getLastMoveDesc());
@@ -193,7 +188,7 @@ public class GameController implements EngineListener, SearchListener {
 
             long vkey = game.currentBoard.getZobrist(isRedTurn());
             List<BookData> bookData = bhBook.query(vkey, isRedTurn(), OpenBook.SortRule.BEST_SCORE);
-            if (bookData != null && bookData.size() > 0) {
+            if (bookData != null && !bookData.isEmpty()) {
                 int idx = 0;
                 if(game.currentBoard.rounds <= random_before_max_rounds && settings.getRandom_move()) {
                     // 如果在前12步，那么可以随机选择一个着法
@@ -213,9 +208,8 @@ public class GameController implements EngineListener, SearchListener {
         state = ControllerState.WAITING_FOR_ENGINE_BESTMV;
 
         // trigger searchrequest, engine will call notifySearchResult for bestmove
-        searchStartTime = System.currentTimeMillis();
-        Board board = null;
-        if (game.history.size() == 0) {
+        Board board;
+        if (game.history.isEmpty()) {
             board = game.currentBoard;
         } else {
             board = game.history.get(0).move.board;
@@ -270,9 +264,8 @@ public class GameController implements EngineListener, SearchListener {
         multiPVs.clear();
 
         // trigger searchrequest, engine will call notifySearchResult for bestmove
-        searchStartTime = System.currentTimeMillis();
-        Board board = null;
-        if (game.history.size() == 0) {
+        Board board;
+        if (game.history.isEmpty()) {
             board = game.currentBoard;
         } else {
             board = game.history.get(0).move.board;
@@ -312,9 +305,8 @@ public class GameController implements EngineListener, SearchListener {
         multiPVs.clear();
 
         // trigger searchrequest, engine will call notifySearchResult for bestmove
-        searchStartTime = System.currentTimeMillis();
-        Board board = null;
-        if (game.history.size() == 0) {
+        Board board;
+        if (game.history.isEmpty()) {
             board = game.currentBoard;
         } else {
             board = game.history.get(0).move.board;
@@ -341,7 +333,6 @@ public class GameController implements EngineListener, SearchListener {
         state = ControllerState.WAITING_FOR_EVAL;
 
         // trigger searchrequest, engine will call notifySearchResult for bestmove
-        searchStartTime = System.currentTimeMillis();
         Board board = game.currentBoard;
         SearchRequest sr = SearchRequest.evalRequest(
                 searchId++,
@@ -440,6 +431,20 @@ public class GameController implements EngineListener, SearchListener {
 
             game.setStartPos(move.fromPosition);
             game.setEndPos(move.toPosition);
+            String moveDescInTraditional = move.getChsString();
+            String moveDescInNumbers = move.fromPosition.x + " " +
+                    move.fromPosition.y + " " +
+                    move.toPosition.x + " " +
+                    move.toPosition.y;
+
+            String moveDesc = moveDescInTraditional + " " + moveDescInNumbers;
+
+            try {
+                Globals.Companion.getMessenger().send(moveDesc);
+                ToastUtils.Companion.showToast("已发送电脑着法" + moveDesc);
+            } catch (Exception e) {
+                ToastUtils.Companion.showToast("无法发送电脑着法到客户端");
+            }
             doMoveAndUpdateStatus(null);
         } else {
             Log.e("GameController", "Invalid move: " + bestmove);
@@ -452,7 +457,7 @@ public class GameController implements EngineListener, SearchListener {
         for (PvInfo pv : multiPVs) {
             Log.d("GameController", "PV: " + pv);
         }
-        if (multiPVs.size() == 0) {
+        if (multiPVs.isEmpty()) {
             // add bestmove to multiPVs
             ArrayList<Move> moves = new ArrayList<>();
             Move m = new Move(game.currentBoard);
@@ -532,14 +537,14 @@ public class GameController implements EngineListener, SearchListener {
                 // show multiPV infos
                 Board b = new Board(game.currentBoard);
                 ArrayList<Move> moves = pvinfo.pv;
-                String desc = "预测着法：";
+                StringBuilder desc = new StringBuilder("预测着法：");
                 for (int i = 1; i < moves.size() && i <= 4; i++) {
                     Move m = moves.get(i);
                     m.setBoard(b);
                     b.doMove(m);
-                    desc += m.getChsString() + " ";
+                    desc.append(m.getChsString()).append(" ");
                 }
-                gui.onGameEvent(GameStatus.MOVE, desc);
+                gui.onGameEvent(GameStatus.MOVE, desc.toString());
             } else {
                 gui.onGameEvent(GameStatus.MOVE, game.getLastMoveDesc());
             }
@@ -585,9 +590,7 @@ public class GameController implements EngineListener, SearchListener {
     public void notifyPV(int id, Board board, ArrayList<PvInfo> pvInfos, Move ponderMove) {
         // show infos about all pvInfos
         multiPVs.clear();
-        for (PvInfo pv : pvInfos) {
-            multiPVs.add(pv);
-        }
+        multiPVs.addAll(pvInfos);
         Log.d("GameController", "PV: " + pvInfos);
     }
 
@@ -606,7 +609,6 @@ public class GameController implements EngineListener, SearchListener {
         // engine返回bestmove, 有3种情况，一种是电脑搜索走棋的结果，一种是红方寻求帮助的结果，一种是电脑被强制要求变着的结果
 
         Log.d("GameController", "Search result: bestMove=" + bestMove + ", nextPonderMove=" + nextPonderMove);
-        searchEndTime = System.currentTimeMillis();
 
         if (state == ControllerState.WAITING_FOR_USER_MULTIPV) {
             // 红方寻求帮助
@@ -622,7 +624,7 @@ public class GameController implements EngineListener, SearchListener {
             // 电脑发起的请求，走下一步棋子
             state = ControllerState.WAITING_FOR_ENGINE;
             // 如果设置了引擎的随机性，则从multiPV中随机选择一个着法。这个只针对前12步有效，后期不让电脑随机选择，否则棋力降低太多
-            if (settings.getRandom_move() && multiPVs.size() > 0 && game.currentBoard.rounds <= random_before_max_rounds) {
+            if (settings.getRandom_move() && !multiPVs.isEmpty() && game.currentBoard.rounds <= random_before_max_rounds) {
                 int idx = (int) (Math.random() * multiPVs.size());
                 String randomMove = multiPVs.get(idx).pv.get(0).getUCCIString();
                 gui.runOnUIThread(() -> computerMovePiece(randomMove));
@@ -639,9 +641,7 @@ public class GameController implements EngineListener, SearchListener {
         Log.d("GameController", "Eval result: eval=" + eval);
         game.currentBoard.score = eval;
 
-        gui.runOnUIThread(() -> {
-                gui.onGameEvent(GameStatus.UPDATEUI);
-        });
+        gui.runOnUIThread(() -> gui.onGameEvent(GameStatus.UPDATEUI));
 
         // restore state
         state = preEvalState;
@@ -649,12 +649,7 @@ public class GameController implements EngineListener, SearchListener {
         // auto nextstep for computer if applicable
         if (isAutoPlay && isComputerPlaying && isBlackTurn()) {
             // 因为要显示预测着法，所以让电脑延迟500s走棋
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    computerForward();
-                }
-            }, 500);
+            new Handler(Looper.getMainLooper()).postDelayed(this::computerForward, 500);
         }
 
     }
@@ -662,16 +657,6 @@ public class GameController implements EngineListener, SearchListener {
     @Override
     public void notifyEngineInitialized() {
         Log.d("GameController", "Engine initialized");
-    }
-
-    public void swapSides() {
-        // search openbook first
-        long vkey = game.currentBoard.getZobrist(isRedTurn());
-        List<BookData> bookData = bhBook.query(vkey, isRedTurn(), OpenBook.SortRule.BEST_SCORE);
-        // iterate bookData one by one
-        for (BookData bd : bookData) {
-            Log.d("GameController", "Openbook hit: " + bd.getMove());
-        }
     }
 
     public int getMultiPVSize() {
@@ -698,9 +683,7 @@ public class GameController implements EngineListener, SearchListener {
                 state = ControllerState.WAITING_FOR_ENGINE;
             }
             Log.d("GameController", "Game status loaded");
-        } catch (IOException e) {
-            Log.e("GameController", "Failed to load game status" + e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             Log.e("GameController", "Failed to load game status" + e);
         }
     }

@@ -30,18 +30,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class FileUtil {
+public class FileUtils {
     /**
      * Read a text file. Return string array with one string per line.
      */
     public static String[] readFile(String filename) throws IOException {
         ArrayList<String> ret = new ArrayList<>();
         try (InputStream inStream = new FileInputStream(filename);
-             InputStreamReader inFile = new InputStreamReader(inStream, "UTF-8");
+             InputStreamReader inFile = new InputStreamReader(inStream, StandardCharsets.UTF_8);
              BufferedReader inBuf = new BufferedReader(inFile)) {
             String line;
             while ((line = inBuf.readLine()) != null)
@@ -54,7 +54,7 @@ public class FileUtil {
      * Read all data from an input stream. Return null if IO error.
      */
     public static String readFromStream(InputStream is) {
-        try (InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+        try (InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(isr)) {
             StringBuilder sb = new StringBuilder();
             String line;
@@ -63,8 +63,6 @@ public class FileUtil {
                 sb.append('\n');
             }
             return sb.toString();
-        } catch (UnsupportedEncodingException e) {
-            return null;
         } catch (IOException e) {
             return null;
         }

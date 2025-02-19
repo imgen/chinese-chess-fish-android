@@ -12,7 +12,7 @@ import com.zfdang.chess.gamelogic.Position;
 import com.zfdang.chess.gamelogic.PvInfo;
 import com.zfdang.chess.manuals.XQFManual;
 import com.zfdang.chess.manuals.XQFParser;
-import com.zfdang.chess.utils.PathUtil;
+import com.zfdang.chess.utils.PathUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +50,7 @@ public class ManualController extends GameController{
                     return false;
                 }
 
-                manual.setFilename(PathUtil.getFileName(filename));
+                manual.setFilename(PathUtils.getFileName(filename));
 
                 boolean result = manual.validateAllMoves();
                 if (!result) {

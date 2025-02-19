@@ -7,7 +7,7 @@ import android.os.Environment;
  * Created by tongdexin on 2017/2/21.
  * https://github.com/ohyes666/CopyAssets
  **/
-public class PathUtil {
+public class PathUtils {
 
     /**
      * ($rootDir)
