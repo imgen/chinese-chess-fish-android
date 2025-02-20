@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -117,12 +119,12 @@ android {
 }
 
 dependencies {
-    implementation("com.readystatesoftware.sqliteasset:sqliteassethelper:+")
+    implementation(libs.sqliteassethelper)
     // https://mvnrepository.com/artifact/com.igormaznitsa/jbbp
-    implementation("com.igormaznitsa:jbbp:3.0.0")
+    implementation(libs.jbbp)
     // https://github.com/PhilJay/MPAndroidChart
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    implementation("com.azure:azure-messaging-servicebus:7.17.8")
+    implementation(libs.mpandroidchart)
+    implementation(libs.azure.messaging.servicebus)
     implementation(project(":filepicker"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

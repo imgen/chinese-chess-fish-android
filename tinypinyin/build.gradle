@@ -1,9 +1,7 @@
-import java.text.SimpleDateFormat
-
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
@@ -15,19 +13,23 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
         maven {
             url "https://plugins.gradle.org/m2/"
         }
     }
 
     dependencies {
-        classpath 'org.apache.ant:ant:1.9.7'
+        classpath libs.ant
     }
 
 }
 
 dependencies {
-    implementation 'org.ahocorasick:ahocorasick:0.6.3'
+    implementation libs.ahocorasick
 }
 
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}

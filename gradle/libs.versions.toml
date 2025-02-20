@@ -1,5 +1,11 @@
 [versions]
-agp = "8.7.2"
+agp = "8.8.1"
+ahocorasick = "0.6.3"
+ant = "1.9.7"
+azureMessagingServicebus = "7.17.8"
+glide = "4.9.0"
+jbbp = "3.0.0"
+junitJunitVersion = "4.12"
 kotlin = "1.9.24"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -10,17 +16,33 @@ material = "1.12.0"
 activity = "1.9.3"
 constraintlayout = "2.1.4"
 junitJupiter = "5.8.1"
+mpandroidchart = "v3.1.0"
+picasso = "2.5.2"
+recyclerviewVersion = "1.2.1"
+sqliteassethelper = "2.0.1"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
+ahocorasick = { module = "org.ahocorasick:ahocorasick", version.ref = "ahocorasick" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
+ant = { module = "org.apache.ant:ant", version.ref = "ant" }
+azure-messaging-servicebus = { module = "com.azure:azure-messaging-servicebus", version.ref = "azureMessagingServicebus" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+jbbp = { module = "com.igormaznitsa:jbbp", version.ref = "jbbp" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+junit-junit-v412 = { module = "junit:junit", version.ref = "junitJunitVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
+picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
+recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
+sqliteassethelper = { module = "com.readystatesoftware.sqliteasset:sqliteassethelper", version.ref = "sqliteassethelper" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
