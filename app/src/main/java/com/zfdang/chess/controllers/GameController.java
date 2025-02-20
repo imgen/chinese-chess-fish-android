@@ -431,20 +431,24 @@ public class GameController implements EngineListener, SearchListener {
 
             game.setStartPos(move.fromPosition);
             game.setEndPos(move.toPosition);
-            String moveDescInTraditional = move.getChsString();
-            String moveDescInNumbers = move.fromPosition.x + " " +
-                    move.fromPosition.y + " " +
-                    move.toPosition.x + " " +
-                    move.toPosition.y;
 
-            String moveDesc = moveDescInTraditional + " " + moveDescInNumbers;
+            if (gui.isRemoteGame()) {
+                String moveDescInTraditional = move.getChsString();
+                String moveDescInNumbers = move.fromPosition.x + " " +
+                        move.fromPosition.y + " " +
+                        move.toPosition.x + " " +
+                        move.toPosition.y;
 
-            try {
-                Globals.Companion.getMessenger().send(moveDesc);
-                ToastUtils.Companion.showToast("已发送电脑着法" + moveDesc);
-            } catch (Exception e) {
-                ToastUtils.Companion.showToast("无法发送电脑着法到客户端");
+                String moveDesc = moveDescInTraditional + " " + moveDescInNumbers;
+
+                try {
+                    Globals.Companion.getMessenger().send(moveDesc);
+                    ToastUtils.Companion.showToast("已发送电脑着法" + moveDesc);
+                } catch (Exception e) {
+                    ToastUtils.Companion.showToast("无法发送电脑着法到客户端");
+                }
             }
+
             doMoveAndUpdateStatus(null);
         } else {
             Log.e("GameController", "Invalid move: " + bestmove);

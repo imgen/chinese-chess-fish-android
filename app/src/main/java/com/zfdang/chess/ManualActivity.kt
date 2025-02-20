@@ -455,6 +455,8 @@ class ManualActivity() : AppCompatActivity(), ControllerListener,
     }
 
     override fun runOnUIThread(runnable: Runnable?) {
-            runOnUiThread(runnable);
-        }
+        runOnUiThread(runnable);
+    }
+
+    override fun isRemoteGame(): Boolean = false
 }

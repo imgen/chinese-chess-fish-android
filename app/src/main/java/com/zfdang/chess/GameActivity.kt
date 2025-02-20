@@ -51,6 +51,8 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     private var isFromManual = false
 
+    private var isRemoteGame = false
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -468,13 +470,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
         saveThenExit()
     }
 
-    override fun onGameEvent(event: GameStatus?) {
-        onGameEvent(event, null)
-    }
+    override fun onGameEvent(event: GameStatus?) = onGameEvent(event, null)
 
-    override fun runOnUIThread(runnable: Runnable?) {
-            runOnUiThread(runnable)
-    }
+    override fun runOnUIThread(runnable: Runnable?) = runOnUiThread(runnable)
+
+    override fun isRemoteGame(): Boolean = isRemoteGame
 
     override fun onDialogPositiveClick() {
         // save setting values to variables in settings
@@ -495,11 +495,13 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     private fun handleCheckmateClientMessage(message: String) {
         when (message) {
             COMMAND_NEW_GAME_WITH_RED_FIRST -> {
+                isRemoteGame = true
                 ToastUtils.showToast("新对弈, 红方(用户)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
             }
             COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
+                isRemoteGame = true
                 ToastUtils.showToast("新对弈, 黑方(电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()

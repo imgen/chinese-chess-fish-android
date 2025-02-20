@@ -13,4 +13,6 @@ public interface ControllerListener {
     // https://stackoverflow.com/questions/5161951/android-only-the-original-thread-that-created-a-view-hierarchy-can-touch-its-vi
     // Android "Only the original thread that created a view hierarchy can touch its views."
     void runOnUIThread(Runnable runnable);
+
+    boolean isRemoteGame();
 }
