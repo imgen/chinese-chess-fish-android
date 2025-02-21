@@ -440,19 +440,26 @@ public class GameController implements EngineListener, SearchListener {
                         move.toPosition.y;
 
                 String moveDesc = moveDescInTraditional + " " + moveDescInNumbers;
-
-                try {
-                    Globals.Companion.getMessenger().send(moveDesc);
-                    ToastUtils.Companion.showToast("已发送电脑着法" + moveDesc);
-                } catch (Exception e) {
-                    ToastUtils.Companion.showToast("无法发送电脑着法到客户端");
-                }
+                sendMove(moveDesc);
             }
 
             doMoveAndUpdateStatus(null);
         } else {
             Log.e("GameController", "Invalid move: " + bestmove);
             gui.onGameEvent(GameStatus.LOSE, "无路可走");
+        }
+    }
+
+    private void sendMove(String moveDesc) {
+        try {
+            Globals.Companion.getMessenger().send(moveDesc);
+            ToastUtils.Companion.showToast("已发送电脑着法" + moveDesc);
+        } catch (Exception e) {
+            Log.d("GameController", "Error sending computer move: " + e);
+            ToastUtils.Companion.showToast("无法发送电脑着法到客户端, 三秒后重试");
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                sendMove(moveDesc);
+            }, 3000);
         }
     }
 

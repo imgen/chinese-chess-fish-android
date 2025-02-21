@@ -166,6 +166,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        if (isRemoteGame) {
+            showRemoteGameWarning()
+            return false
+        }
+
         // 防止重复点击
         lastClickTime = System.currentTimeMillis()
         if (lastClickTime - curClickTime < MIN_CLICK_DELAY_TIME) {
@@ -220,6 +225,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
         builder.setPositiveButton("开始新游戏") { _, _ ->
             // User clicked Yes button
+            isRemoteGame = false
             startNewGame()
         }
 
@@ -282,6 +288,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
         // handle events for all imagebuttons in activity_player.xml
         when(v) {
             binding.playerbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.toggleComputer()
                 if(controller.isComputerPlaying){
                     binding.playerbt.setImageResource(R.drawable.computer)
@@ -292,12 +303,27 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 }
             }
             binding.playerbackbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.stepBack()
             }
             binding.playerforwardbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.computerForward()
             }
             binding.autoplaybt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.toggleComputerAutoPlay()
                 if(controller.isAutoPlay){
                     binding.autoplaybt.setImageResource(R.drawable.play_circle)
@@ -313,12 +339,27 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 }
             }
             binding.quickbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.stopSearchNow()
             }
             binding.playeraltbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.computerAskForMultiPV()
             }
             binding.optionbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 // Show the dialog
                 val dialog = SettingDialogFragment()
                 dialog.setController(controller)
@@ -327,16 +368,36 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 dialog.show(supportFragmentManager, "CustomDialog")
             }
             binding.newbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 // display dialog to ask users for confirmation
                 showNewGameConfirmDialog()
             }
             binding.backbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.stepBack()
             }
             binding.importbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 showInputFENDialog()
             }
             binding.exportbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 val fenString = controller.game.currentBoard.toFENString()
                 // copy to clipboard
                 val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
@@ -346,13 +407,28 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 Log.d("GameActivity", "fenString: $fenString")
             }
             binding.helpbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 setStatusText("正在搜索建议着法...")
                 controller.playerAskForHelp()
             }
             binding.stophelpbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 controller.stopSearchNow()
             }
             binding.trendsbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 // get image resource of trends button
                 controller.toggleShowTrends()
                 val imageResource = if(controller.isShowTrends) R.drawable.trend else R.drawable.history
@@ -371,9 +447,19 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 historyAndTrendAdapter.update()
             }
             binding.exitbt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 saveThenExit()
             }
             binding.choice1bt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 setStatusText("选择着数1")
                 binding.choice1bt.visibility = View.GONE
                 binding.choice2bt.visibility = View.GONE
@@ -381,6 +467,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 controller.selectMultiPV(0)
             }
             binding.choice2bt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 setStatusText("选择着数2")
                 binding.choice1bt.visibility = View.GONE
                 binding.choice2bt.visibility = View.GONE
@@ -388,6 +479,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 controller.selectMultiPV(1)
             }
             binding.choice3bt -> {
+                if (isRemoteGame) {
+                    showRemoteGameWarning()
+                    return
+                }
+
                 setStatusText("选择着数3")
                 binding.choice1bt.visibility = View.GONE
                 binding.choice2bt.visibility = View.GONE
@@ -465,6 +561,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     @Deprecated("Only for backwards compatability")
     override fun onBackPressed() {
+        if (isRemoteGame) {
+            showRemoteGameWarning()
+            return
+        }
+
         // save game to file
         super.onBackPressed()
         saveThenExit()
@@ -488,34 +589,58 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     companion object Constants {
         const val COMMAND_NEW_GAME_WITH_RED_FIRST: String = "NGRF"
         const val COMMAND_NEW_GAME_WITH_DARK_FIRST: String = "NGDF"
+        const val COMMAND_END_REMOTE_GAME: String = "ERG"
         const val COMMAND_WITHDRAW_LAST_MOVE: String = "WLM"
         const val MIN_CLICK_DELAY_TIME: Int = 100
+    }
+
+    private fun showRemoteGameWarning() {
+        ToastUtils.showToast("远程棋局不允许手动下棋")
     }
 
     private fun handleCheckmateClientMessage(message: String) {
         when (message) {
             COMMAND_NEW_GAME_WITH_RED_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showToast("新对弈, 红方(用户)先行")
+                ToastUtils.showToast("新远程棋局, 红方(用户)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
             }
             COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showToast("新对弈, 黑方(电脑)先行")
+                ToastUtils.showToast("新远程棋局, 黑方(电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
             }
             COMMAND_WITHDRAW_LAST_MOVE -> {
+                if (!isRemoteGame) {
+                    return
+                }
                 ToastUtils.showToast("撤销上一步棋")
                 withdrawLastMoveDelayed()
             }
-            else -> if (isChineseChessMove(message)) {
-                ToastUtils.showToast("收到红方(用户)着法$message")
-                val move = parseMoveMessage(message)
-                moveRedDelayed(move)
-            } else {
-                sendInvalidMove()
+            COMMAND_END_REMOTE_GAME -> {
+                if (!isRemoteGame) {
+                    return
+                }
+                ToastUtils.showToast("结束远程棋局")
+                // 开始新默认棋局
+                isRemoteGame = false
+                controller.settings.red_go_first = true
+                startNewGame()
+            }
+            else -> {
+                if (!isRemoteGame) {
+                    return
+                }
+
+                if (isChineseChessMove(message)) {
+                    ToastUtils.showToast("收到红方(用户)着法$message")
+                    val move = parseMoveMessage(message)
+                    moveRedDelayed(move)
+                } else {
+                    sendInvalidMove()
+                }
             }
         }
     }
