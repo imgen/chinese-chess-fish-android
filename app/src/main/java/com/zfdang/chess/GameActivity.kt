@@ -62,6 +62,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ToastUtils.coordinatorLayout = binding.root
 
         // new game
         controller = GameController(this)
@@ -595,20 +596,20 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     private fun showRemoteGameWarning() {
-        ToastUtils.showToast("远程棋局不允许手动下棋")
+        ToastUtils.showSnackbar("远程棋局不允许手动下棋")
     }
 
     private fun handleCheckmateClientMessage(message: String) {
         when (message) {
             COMMAND_NEW_GAME_WITH_RED_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showToast("新远程棋局, 红方(用户)先行")
+                ToastUtils.showSnackbar("新远程棋局, 红方(用户)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
             }
             COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showToast("新远程棋局, 黑方(电脑)先行")
+                ToastUtils.showSnackbar("新远程棋局, 黑方(电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
             }
@@ -616,14 +617,14 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 if (!isRemoteGame) {
                     return
                 }
-                ToastUtils.showToast("撤销上一步棋")
+                ToastUtils.showSnackbar("撤销上一步棋")
                 withdrawLastMoveDelayed()
             }
             COMMAND_END_REMOTE_GAME -> {
                 if (!isRemoteGame) {
                     return
                 }
-                ToastUtils.showToast("结束远程棋局")
+                ToastUtils.showSnackbar("结束远程棋局")
                 // 开始新默认棋局
                 isRemoteGame = false
                 controller.settings.red_go_first = true
@@ -635,7 +636,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 }
 
                 if (isChineseChessMove(message)) {
-                    ToastUtils.showToast("收到红方(用户)着法$message")
+                    ToastUtils.showSnackbar("收到红方(用户)着法$message")
                     val move = parseMoveMessage(message)
                     moveRedDelayed(move)
                 } else {
@@ -649,7 +650,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
         try {
             Globals.messenger.send("无效着法")
         } catch (e: Exception) {
-            ToastUtils.showToast("无法发送信息到客户端")
+            ToastUtils.showSnackbar("无法发送信息到客户端")
         }
     }
 
