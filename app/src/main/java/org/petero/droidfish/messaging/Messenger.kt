@@ -1,5 +1,7 @@
 package org.petero.droidfish.messaging
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.azure.core.amqp.AmqpTransportType
 import com.azure.messaging.servicebus.ServiceBusClientBuilder
@@ -7,6 +9,8 @@ import com.azure.messaging.servicebus.ServiceBusErrorContext
 import com.azure.messaging.servicebus.ServiceBusMessage
 import com.azure.messaging.servicebus.ServiceBusProcessorClient
 import com.azure.messaging.servicebus.ServiceBusSenderClient
+import com.zfdang.chess.Globals.Companion.messenger
+import com.zfdang.chess.utils.ToastUtils.Companion.showSnackbar
 import java.util.Base64
 
 typealias MessageHandler = (String) -> Unit
@@ -86,7 +90,13 @@ class Messenger {
     }
 
     fun send(message: String) {
-        sender.sendMessage(ServiceBusMessage(message))
+        try {
+            sender.sendMessage(ServiceBusMessage(message))
+            logMessage("Sent message $message")
+        } catch (e: java.lang.Exception) {
+            logMessage("Error sending message $message. Exception: $e. Retrying 3 seconds later")
+            Handler(Looper.getMainLooper()).postDelayed({ send(message) }, 3000)
+        }
     }
 
     fun close() {

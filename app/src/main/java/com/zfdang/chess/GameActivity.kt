@@ -647,11 +647,8 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     private fun sendInvalidMove() {
-        try {
-            Globals.messenger.send("无效着法")
-        } catch (e: Exception) {
-            ToastUtils.showSnackbar("无法发送信息到客户端")
-        }
+        Globals.messenger.send("无效着法")
+        ToastUtils.showSnackbar("无效着法")
     }
 
     private fun moveRedDelayed(move: Move) {
@@ -667,6 +664,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     private fun moveRed(move: Move) {
         val game = controller.game
+        val board = game.currentBoard
 
         // If game's start position is not empty, clear it first
         if (game.startPos != null) {
@@ -677,12 +675,16 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             sendInvalidMove()
             return
         }
-        val piece = game.currentBoard.getPieceByPosition(move.fromPosition)
+        val piece = board.getPieceByPosition(move.fromPosition)
         if (Piece.isValid(piece) && Piece.isRed(piece)) {
-            val tempMove = Move(move.fromPosition, move.toPosition, game.currentBoard)
-            if (Rule.isValidMove(tempMove, game.currentBoard)) {
+            val tempMove = Move(move.fromPosition, move.toPosition, board)
+            if (Rule.isValidMove(tempMove, board)) {
+                val traditionalMoveDesc = tempMove.chsString
+                Globals.messenger.send("远程走棋$traditionalMoveDesc")
+
                 controller.touchPosition(move.fromPosition)
                 controller.touchPosition(move.toPosition)
+
                 return
             }
         }

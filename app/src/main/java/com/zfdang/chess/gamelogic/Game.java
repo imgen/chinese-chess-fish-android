@@ -3,22 +3,23 @@ package com.zfdang.chess.gamelogic;
 import android.content.Context;
 import android.util.Log;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Game implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final String SAVE_FILENAME = "GameSaveFile";
 
     //  create public data class HistoryRecord
     public static class HistoryRecord implements Serializable {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         public Move move;
@@ -41,9 +42,6 @@ public class Game implements Serializable {
             this.isRedMove = isRedMove;
         }
 
-        public String getChsString(){
-            return chsString;
-        }
     }
 
     // create ListArray of HistoryRecord
@@ -101,7 +99,7 @@ public class Game implements Serializable {
     }
 
     public HistoryRecord undoMove(){
-        if(history.size() > 0){
+        if(!history.isEmpty()){
             HistoryRecord record = history.remove(history.size()-1);
             currentBoard = new Board(record.move.board);
             clearStartPos();
@@ -147,7 +145,7 @@ public class Game implements Serializable {
         for(PvInfo pvinfo : multiPVs) {
             Move move = new Move(currentBoard);
             ArrayList<Move> moves = pvinfo.pv;
-            if(moves.size() > 0) {
+            if(!moves.isEmpty()) {
                 Move firstMove = moves.get(0);
                 move.fromPosition = firstMove.fromPosition;
                 move.toPosition = firstMove.toPosition;
@@ -186,7 +184,7 @@ public class Game implements Serializable {
     }
 
     public String getLastMoveDesc(){
-        if(history.size() == 0){
+        if(history.isEmpty()){
             return "";
         }
         HistoryRecord record = history.get(history.size()-1);

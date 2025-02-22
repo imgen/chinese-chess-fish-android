@@ -451,14 +451,8 @@ public class GameController implements EngineListener, SearchListener {
     }
 
     private void sendMove(String moveDesc) {
-        try {
-            Globals.Companion.getMessenger().send(moveDesc);
-            ToastUtils.Companion.showSnackbar("已发送电脑着法" + moveDesc);
-        } catch (Exception e) {
-            Log.d("GameController", "Error sending computer move: " + e);
-            ToastUtils.Companion.showSnackbar("无法发送电脑着法到客户端, 三秒后重试");
-            new Handler(Looper.getMainLooper()).postDelayed(() -> sendMove(moveDesc), 3000);
-        }
+        Globals.Companion.getMessenger().send(moveDesc);
+        ToastUtils.Companion.showSnackbar("已发送电脑着法" + moveDesc);
     }
 
     public void processMultiPVInfos(String bestmove) {
