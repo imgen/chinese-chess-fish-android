@@ -439,7 +439,7 @@ public class GameController implements EngineListener, SearchListener {
                         move.toPosition.x + " " +
                         move.toPosition.y;
 
-                String moveDesc = moveDescInTraditional + " " + moveDescInNumbers;
+                String moveDesc = "电脑走棋" + moveDescInTraditional + " " + moveDescInNumbers;
                 sendMove(moveDesc);
             }
 

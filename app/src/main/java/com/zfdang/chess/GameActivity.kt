@@ -680,7 +680,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             val tempMove = Move(move.fromPosition, move.toPosition, board)
             if (Rule.isValidMove(tempMove, board)) {
                 val traditionalMoveDesc = tempMove.chsString
-                Globals.messenger.send("远程走棋$traditionalMoveDesc")
+                Globals.messenger.send("远程对手走棋$traditionalMoveDesc")
 
                 controller.touchPosition(move.fromPosition)
                 controller.touchPosition(move.toPosition)
