@@ -12,12 +12,10 @@ plugins {
 // https://discuss.kotlinlang.org/t/use-git-hash-as-version-number-in-build-gradle-kts/19818/2
 // this function will return the git version number, and will be used as versionCode
 fun gitVersion(): Int {
-    val os = org.apache.commons.io.output.ByteArrayOutputStream()
-    project.exec {
+    val output = providers.exec {
         commandLine = "git rev-list HEAD --count".split(" ")
-        standardOutput = os
-    }
-    return String(os.toByteArray()).trim().toInt()
+    }.standardOutput.asText.get()
+    return output.trim().toInt()
 }
 
 android {
