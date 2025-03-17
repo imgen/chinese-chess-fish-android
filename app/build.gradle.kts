@@ -13,7 +13,7 @@ plugins {
 // this function will return the git version number, and will be used as versionCode
 fun gitVersion(): Int {
     val os = org.apache.commons.io.output.ByteArrayOutputStream()
-    providers.exec {
+    project.exec {
         commandLine = "git rev-list HEAD --count".split(" ")
         standardOutput = os
     }
