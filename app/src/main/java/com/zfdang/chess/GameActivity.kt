@@ -606,6 +606,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 ToastUtils.showSnackbar("新远程棋局, 红方(用户)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
+                Globals.messenger.send("新红方先行远程棋局已开始")
             }
             COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
                 isRemoteGame = true
