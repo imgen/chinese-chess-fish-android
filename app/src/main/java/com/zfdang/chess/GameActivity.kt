@@ -26,6 +26,8 @@ import com.zfdang.chess.gamelogic.Rule
 import com.zfdang.chess.openbook.BHOpenBook
 import com.zfdang.chess.utils.ToastUtils
 import com.zfdang.chess.views.ChessView
+import androidx.core.view.isVisible
+import androidx.core.view.isGone
 
 class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListener,
     View.OnClickListener, SettingDialogFragment.SettingDialogListener {
@@ -206,7 +208,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             setStatusText("新游戏，黑方先行")
         }
         // hide choice buttons
-        if(binding.choice1bt.visibility == View.VISIBLE){
+        if(binding.choice1bt.isVisible){
             binding.choice1bt.visibility = View.GONE
             binding.choice2bt.visibility = View.GONE
             binding.choice3bt.visibility = View.GONE
@@ -506,7 +508,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 message?.let { setStatusText(it) }
                 soundPlayer.move()
 
-                if(binding.choice1bt.visibility == View.VISIBLE){
+                if(binding.choice1bt.isVisible){
                     binding.choice1bt.visibility = View.GONE
                     binding.choice2bt.visibility = View.GONE
                     binding.choice3bt.visibility = View.GONE
@@ -538,7 +540,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 message?.let { setStatusText(it) }
 
                 // show choice buttons
-                if(binding.choice1bt.visibility == View.GONE){
+                if(binding.choice1bt.isGone){
                     binding.choice1bt.visibility = View.VISIBLE
                     if(controller.multiPVSize >= 2){
                         binding.choice2bt.visibility = View.VISIBLE
@@ -613,6 +615,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 ToastUtils.showSnackbar("新远程棋局, 黑方(电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
+                Globals.messenger.addMessage("新电脑先行远程棋局已开始")
             }
             COMMAND_WITHDRAW_LAST_MOVE -> {
                 if (!isRemoteGame) {
@@ -681,7 +684,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             val tempMove = Move(move.fromPosition, move.toPosition, board)
             if (Rule.isValidMove(tempMove, board)) {
                 val traditionalMoveDesc = tempMove.chsString
-                Globals.messenger.send("远程对手走棋$traditionalMoveDesc")
+                Globals.messenger.addMessage("远程对手走棋$traditionalMoveDesc")
 
                 controller.touchPosition(move.fromPosition)
                 controller.touchPosition(move.toPosition)

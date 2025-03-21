@@ -9,8 +9,6 @@ import com.azure.messaging.servicebus.ServiceBusErrorContext
 import com.azure.messaging.servicebus.ServiceBusMessage
 import com.azure.messaging.servicebus.ServiceBusProcessorClient
 import com.azure.messaging.servicebus.ServiceBusSenderClient
-import com.zfdang.chess.Globals.Companion.messenger
-import com.zfdang.chess.utils.ToastUtils.Companion.showSnackbar
 import java.util.Base64
 
 typealias MessageHandler = (String) -> Unit
@@ -74,6 +72,8 @@ class Messenger {
         .processError { context -> processError(context) }
         .buildProcessorClient()
 
+    private val messages: ArrayList<String> = ArrayList()
+
     private fun logMessage(message: String, ex: Exception? = null) {
         Log.d(TAG, message, ex)
     }
@@ -87,6 +87,17 @@ class Messenger {
     fun startProcessingMessages() {
         if (!processor.isRunning)
             processor.start()
+    }
+
+    fun addMessage(message: String) {
+        messages.add(message)
+    }
+
+    fun sendWithMessages(newMessage: String) {
+        messages.add(newMessage)
+        val joinedMessage = messages.joinToString(".")
+        messages.clear()
+        send(joinedMessage)
     }
 
     fun send(message: String) {

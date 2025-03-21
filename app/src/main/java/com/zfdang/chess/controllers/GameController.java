@@ -451,7 +451,7 @@ public class GameController implements EngineListener, SearchListener {
     }
 
     private void sendMove(String moveDesc) {
-        Globals.Companion.getMessenger().send(moveDesc);
+        Globals.Companion.getMessenger().sendWithMessages(moveDesc);
         ToastUtils.Companion.showSnackbar("已发送电脑着法" + moveDesc);
     }
 
