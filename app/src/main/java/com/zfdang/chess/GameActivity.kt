@@ -633,6 +633,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 isRemoteGame = false
                 controller.settings.red_go_first = true
                 startNewGame()
+                Globals.messenger.addMessage("远程棋局已结束")
             }
             else -> {
                 if (!isRemoteGame) {
