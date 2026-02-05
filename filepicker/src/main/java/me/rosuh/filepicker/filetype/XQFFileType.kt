@@ -25,7 +25,7 @@ class XQFFileType : FileType {
             // 如果没有 . 符号，即是没有文件后缀
             return false
         }
-        val suffix = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()
+        val suffix = fileName.substring(fileName.lastIndexOf(".") + 1).lowercase()
         return when (suffix) {
             "xqf" -> {
                 true
