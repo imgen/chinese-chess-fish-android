@@ -100,7 +100,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
-    ndkVersion = "25.1.8937393"
+    ndkVersion = "29.0.13113456"
 
     // https://gist.github.com/pankajXdev/574063901ada2fafa329068f41ddb076
     // Config your output file name in Gradle Kotlin DSL
