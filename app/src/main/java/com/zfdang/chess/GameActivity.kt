@@ -28,6 +28,8 @@ import com.zfdang.chess.utils.ToastUtils
 import com.zfdang.chess.views.ChessView
 import androidx.core.view.isVisible
 import androidx.core.view.isGone
+import com.zfdang.chess.receiver.CheckmateSmsReceiver
+import com.zfdang.chess.tts.Speaker
 
 class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListener,
     View.OnClickListener, SettingDialogFragment.SettingDialogListener {
@@ -54,6 +56,10 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     private var isFromManual = false
 
     private var isRemoteGame = false
+
+    private val TAG = GameActivity::class.java.simpleName
+
+    private val speaker = Speaker()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -154,18 +160,21 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             binding.autoplaybt.setImageResource(R.drawable.pause_circle)
         }
 
-        Globals.messenger.onNewMessage = {
+        CheckmateSmsReceiver.onNewMessage = {
             message ->
                 runOnUiThread {
                     handleCheckmateClientMessage(message)
                 }
         }
-        Globals.messenger.startProcessingMessages()
+        CheckmateSmsReceiver.startReceiving()
+        speaker.initTextToSpeech(this)
+        // Globals.messenger.startProcessingMessages()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Globals.messenger.close()
+        CheckmateSmsReceiver.stopReceiving()
+        // Globals.messenger.close()
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -590,10 +599,10 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     companion object Constants {
-        const val COMMAND_NEW_GAME_WITH_RED_FIRST: String = "NGRF"
-        const val COMMAND_NEW_GAME_WITH_DARK_FIRST: String = "NGDF"
-        const val COMMAND_END_REMOTE_GAME: String = "ERG"
-        const val COMMAND_WITHDRAW_LAST_MOVE: String = "WLM"
+        const val COMMAND_NEW_GAME_WITH_RED_FIRST: String = "1"
+        const val COMMAND_NEW_GAME_WITH_DARK_FIRST: String = "2"
+        const val COMMAND_END_REMOTE_GAME: String = "3"
+        const val COMMAND_WITHDRAW_LAST_MOVE: String = "4"
         const val MIN_CLICK_DELAY_TIME: Int = 100
     }
 
@@ -608,14 +617,14 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 ToastUtils.showSnackbar("新远程棋局, 红方(用户)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
-                Globals.messenger.send("新红方先行远程棋局已开始")
+                speaker.speak("新红方先行远程棋局已开始")
             }
             COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
                 isRemoteGame = true
                 ToastUtils.showSnackbar("新远程棋局, 黑方(电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
-                Globals.messenger.addMessage("新电脑先行远程棋局已开始")
+                speaker.speak("新电脑先行远程棋局已开始")
             }
             COMMAND_WITHDRAW_LAST_MOVE -> {
                 if (!isRemoteGame) {
@@ -633,7 +642,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 isRemoteGame = false
                 controller.settings.red_go_first = true
                 startNewGame()
-                Globals.messenger.addMessage("远程棋局已结束")
+                speaker.speak("远程棋局已结束")
             }
             else -> {
                 if (!isRemoteGame) {
@@ -652,7 +661,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     private fun sendInvalidMove() {
-        Globals.messenger.send("无效着法")
+        speaker.speak("无效着法")
         ToastUtils.showSnackbar("无效着法")
     }
 
@@ -685,7 +694,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             val tempMove = Move(move.fromPosition, move.toPosition, board)
             if (Rule.isValidMove(tempMove, board)) {
                 val traditionalMoveDesc = tempMove.chsString
-                Globals.messenger.addMessage("远程对手走棋$traditionalMoveDesc")
+                speaker.speak("远程对手走棋$traditionalMoveDesc")
 
                 controller.touchPosition(move.fromPosition)
                 controller.touchPosition(move.toPosition)
@@ -709,19 +718,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
         controller.stepBack()
     }
 
-    private fun isChineseChessMove(text: String): Boolean {
-        if (text.length != 4) {
-            return false
-        }
-
-        for (ch in text.toCharArray()) {
-            if (!Character.isDigit(ch)) {
-                return false
-            }
-        }
-
-        return true
-    }
+    private fun isChineseChessMove(text: String): Boolean = text.length == 4 && text.all { it.isDigit() }
 
     private fun parseMoveMessage(moveText: String): Move {
         val fromPosition = Position(moveText[0].digitToInt(), moveText[1].digitToInt())
