@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.zfdang.chess.Globals
 import java.util.Locale
 
 class Speaker {
@@ -11,7 +12,10 @@ class Speaker {
 
     private var tts: TextToSpeech? = null
 
+    var isInitializationSuccess = false
+
     fun initTextToSpeech(context: Context) {
+        Globals.speaker = this
         tts = TextToSpeech(context, {
             if (it == TextToSpeech.SUCCESS) {
                 val result = tts!!.setLanguage(Locale.CHINA)
@@ -26,6 +30,7 @@ class Speaker {
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                         .build()
                     tts!!.setAudioAttributes(attrs)
+                    isInitializationSuccess = true
                 }
             } else {
                 Log.d(TAG, "Failed to initialize TTS engine")
@@ -34,6 +39,10 @@ class Speaker {
     }
 
     fun speak(text: CharSequence) {
+        if (!isInitializationSuccess) {
+            Log.w(TAG, "TTS engine is not initialized correctly");
+            return
+        }
         tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utteranceId")
     }
 
@@ -41,6 +50,7 @@ class Speaker {
         if (tts != null) {
             tts!!.stop()
             tts!!.shutdown()
+            isInitializationSuccess = false
         }
     }
 }

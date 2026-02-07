@@ -65,6 +65,8 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        speaker.initTextToSpeech(this)
+
         // Disable screen saver
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -167,7 +169,6 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 }
         }
         CheckmateSmsReceiver.startReceiving()
-        speaker.initTextToSpeech(this)
         // Globals.messenger.startProcessingMessages()
     }
 
