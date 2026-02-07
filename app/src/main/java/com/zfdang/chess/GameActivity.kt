@@ -600,8 +600,8 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     companion object Constants {
-        const val COMMAND_NEW_GAME_WITH_RED_FIRST: String = "1"
-        const val COMMAND_NEW_GAME_WITH_DARK_FIRST: String = "2"
+        const val COMMAND_NEW_REMOTE_GAME_WITH_OPPONENT_FIRST: String = "1"
+        const val COMMAND_NEW_RMOTE_GAME_WITH_COMPUTER_AKA_SELF_FIRST: String = "2"
         const val COMMAND_END_REMOTE_GAME: String = "3"
         const val COMMAND_WITHDRAW_LAST_MOVE: String = "4"
         const val MIN_CLICK_DELAY_TIME: Int = 100
@@ -613,19 +613,19 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     private fun handleCheckmateClientMessage(message: String) {
         when (message) {
-            COMMAND_NEW_GAME_WITH_RED_FIRST -> {
+            COMMAND_NEW_REMOTE_GAME_WITH_OPPONENT_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showSnackbar("新远程棋局, 红方(用户)先行")
+                ToastUtils.showSnackbar("新远程棋局, 红棋(对方)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
-                speaker.speak("新红方先行远程棋局已开始")
+                speaker.speak("新对方红棋先行远程棋局已开始")
             }
-            COMMAND_NEW_GAME_WITH_DARK_FIRST -> {
+            COMMAND_NEW_RMOTE_GAME_WITH_COMPUTER_AKA_SELF_FIRST -> {
                 isRemoteGame = true
-                ToastUtils.showSnackbar("新远程棋局, 黑方(电脑)先行")
+                ToastUtils.showSnackbar("新远程棋局, 黑棋(己方电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
-                speaker.speak("新电脑先行远程棋局已开始")
+                speaker.speak("新黑棋己方电脑先行远程棋局已开始")
             }
             COMMAND_WITHDRAW_LAST_MOVE -> {
                 if (!isRemoteGame) {
