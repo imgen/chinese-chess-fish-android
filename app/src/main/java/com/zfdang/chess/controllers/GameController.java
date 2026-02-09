@@ -452,7 +452,7 @@ public class GameController implements EngineListener, SearchListener {
 
     private void sendMove(String moveDesc) {
         Globals.Companion.speak(moveDesc);
-        ToastUtils.Companion.showSnackbar("已发送电脑着法" + moveDesc);
+        ToastUtils.Companion.showSnackBar("已发送电脑着法" + moveDesc);
     }
 
     public void processMultiPVInfos(String bestmove) {

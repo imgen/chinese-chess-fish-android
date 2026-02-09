@@ -19,7 +19,7 @@ class ToastUtils {
                 .show()
         }
 
-        fun showSnackbar(message: String) {
+        fun showSnackBar(message: CharSequence) {
             Snackbar.make(coordinatorLayout!!, message, Snackbar.LENGTH_LONG).show()
         }
     }
