@@ -31,6 +31,7 @@ class CheckmateSmsReceiver : BroadcastReceiver() {
     private val TAG = CheckmateSmsReceiver::class.java.simpleName
 
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d(TAG, "Received a SMS")
         if (!enableReceiving) {
             return
         }
@@ -47,6 +48,11 @@ class CheckmateSmsReceiver : BroadcastReceiver() {
                     )
                 }
                 .sortedBy { it.timestampMillis }
+
+            if(smsMessages.isNotEmpty()) {
+                Log.d(TAG, "Received a SMS from the checkmate phone number")
+            }
+
             for (smsMessage in smsMessages) {
                 val message = smsMessage.messageBody
                 Log.d(TAG, "Found Checkmate message $message")

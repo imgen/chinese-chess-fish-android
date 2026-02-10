@@ -455,22 +455,22 @@ public class GameController implements EngineListener, SearchListener {
         ToastUtils.Companion.showSnackBar("已发送电脑着法" + moveDesc);
     }
 
-    public void processMultiPVInfos(String bestmove) {
+    public void processMultiPVInfos(String bestMove) {
         // show multiPV infos
         for (PvInfo pv : multiPVs) {
             Log.d("GameController", "PV: " + pv);
         }
         if (multiPVs.isEmpty()) {
-            // add bestmove to multiPVs
+            // add bestMove to multiPVs
             ArrayList<Move> moves = new ArrayList<>();
             Move m = new Move(game.currentBoard);
-            boolean result = m.fromUCCIString(bestmove);
+            boolean result = m.fromUCCIString(bestMove);
             if (result) {
                 moves.add(m);
                 PvInfo pvinfo = new PvInfo(0, 0, 0, 0, 0, 0, 0, 0, false, false, false, moves);
                 multiPVs.add(pvinfo);
             } else {
-                Log.e("GameController", "Invalid move: " + bestmove);
+                Log.e("GameController", "Invalid move: " + bestMove);
                 gui.onGameEvent(GameStatus.LOSE, "无路可走");
                 return;
             }
