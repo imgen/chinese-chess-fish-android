@@ -611,9 +611,11 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     private fun showSnackBar(message: CharSequence) = ToastUtils.showSnackBar(message)
 
+    private fun speak(message: CharSequence) = speaker.speak(message)
+
     private fun String.showSnackBarAndSpeak() {
         showSnackBar(this)
-        speaker.speak(this)
+        speak(this)
     }
 
     private fun handleCheckmateClientMessage(message: String) {
@@ -623,14 +625,14 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 showSnackBar("新远程棋局, 红棋(对方)先行")
                 controller.settings.red_go_first = true
                 startNewGame()
-                speaker.speak("新对方红棋先行远程棋局已开始")
+                speak("新对方红棋先行远程棋局已开始")
             }
             COMMAND_NEW_RMOTE_GAME_WITH_COMPUTER_AKA_SELF_FIRST -> {
                 isRemoteGame = true
                 showSnackBar("新远程棋局, 黑棋(己方电脑)先行")
                 controller.settings.red_go_first = false
                 startNewGame()
-                speaker.speak("新黑棋己方电脑先行远程棋局已开始")
+                speak("新黑棋己方电脑先行远程棋局已开始")
             }
             COMMAND_WITHDRAW_LAST_MOVE -> {
                 if (!isRemoteGame) {
@@ -648,7 +650,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 isRemoteGame = false
                 controller.settings.red_go_first = true
                 startNewGame()
-                speaker.speak("远程棋局已结束")
+                speak("远程棋局已结束")
             }
             else -> {
                 if (!isRemoteGame) {
@@ -667,8 +669,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     private fun sendInvalidMove() {
-        speaker.speak("无效着法")
-        showSnackBar("无效着法")
+        "无效着法".showSnackBarAndSpeak()
     }
 
     private fun moveRedDelayed(move: Move) {
@@ -700,7 +701,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             val tempMove = Move(move.fromPosition, move.toPosition, board)
             if (Rule.isValidMove(tempMove, board)) {
                 val traditionalMoveDesc = tempMove.chsString
-                speaker.speak("远程对手走棋$traditionalMoveDesc")
+                speak("远程对手走棋$traditionalMoveDesc")
 
                 controller.touchPosition(move.fromPosition)
                 controller.touchPosition(move.toPosition)
