@@ -109,8 +109,7 @@ public class Move implements Serializable {
         char s, e;
         s = (char)('a' + fromPosition.x);
         e = (char)('a' + toPosition.x);
-        String result = String.format("%c%d%c%d", s, 9 - fromPosition.y, e, 9 - toPosition.y);
-        return result;
+        return String.format("%c%d%c%d", s, 9 - fromPosition.y, e, 9 - toPosition.y);
     }
 
     /*

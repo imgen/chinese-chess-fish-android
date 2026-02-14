@@ -30,6 +30,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.isGone
 import com.zfdang.chess.receiver.CheckmateSmsReceiver
 import com.zfdang.chess.tts.Speaker
+import org.petero.droidfish.messaging.Messenger
 
 class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListener,
     View.OnClickListener, SettingDialogFragment.SettingDialogListener {
@@ -162,20 +163,20 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
             binding.autoplaybt.setImageResource(R.drawable.pause_circle)
         }
 
-        CheckmateSmsReceiver.onNewMessage = {
+        Globals.messenger.onNewMessage = {
             message ->
                 runOnUiThread {
                     handleCheckmateClientMessage(message)
                 }
         }
-        CheckmateSmsReceiver.startReceiving()
-        // Globals.messenger.startProcessingMessages()
+        // CheckmateSmsReceiver.startReceiving()
+        Globals.messenger.startProcessingMessages()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        CheckmateSmsReceiver.stopReceiving()
-        // Globals.messenger.close()
+        // CheckmateSmsReceiver.stopReceiving()
+        Globals.messenger.close()
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
