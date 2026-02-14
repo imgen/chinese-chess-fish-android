@@ -58,6 +58,8 @@ public class GameController implements EngineListener, SearchListener {
 
     public Settings settings;
 
+    private String lastComputerMoveDesc;
+
     public void toggleShowTrends() {
         isShowTrends = !isShowTrends;
     }
@@ -451,8 +453,21 @@ public class GameController implements EngineListener, SearchListener {
     }
 
     private void sendMove(String moveDesc) {
+        lastComputerMoveDesc = moveDesc;
         Globals.Companion.speak(moveDesc);
         ToastUtils.Companion.showSnackBar("已发送电脑着法" + moveDesc);
+    }
+
+    public void repeatLastComputerMove() {
+        if (lastComputerMoveDesc != null && !lastComputerMoveDesc.isEmpty()) {
+            sendMove(lastComputerMoveDesc);
+        } else {
+            Globals.speak("电脑暂未走棋");
+        }
+    }
+
+    public void resetLastComputerMove() {
+        lastComputerMoveDesc = null;
     }
 
     public void processMultiPVInfos(String bestMove) {

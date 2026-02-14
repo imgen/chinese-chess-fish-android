@@ -46,7 +46,7 @@ class Speaker {
             Log.w(TAG, "TTS engine is not initialized successfully or it's already shutdown");
             return
         }
-        tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utteranceId")
+        tts!!.speak(text, TextToSpeech.QUEUE_ADD, null, "utteranceId")
     }
 
     fun shutdown() {
