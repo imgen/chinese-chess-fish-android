@@ -1,5 +1,5 @@
 [versions]
-agp = "9.0.0"
+agp = "9.0.1"
 ahocorasick = "0.6.3"
 ant = "1.9.7"
 azureMessagingServicebus = "7.17.8"
