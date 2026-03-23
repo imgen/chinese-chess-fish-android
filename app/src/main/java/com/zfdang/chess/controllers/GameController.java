@@ -441,7 +441,7 @@ public class GameController implements EngineListener, SearchListener {
                         move.toPosition.x + " " +
                         move.toPosition.y;
 
-                String moveDesc = "电脑走棋" + moveDescInTraditional + " " + moveDescInNumbers;
+                String moveDesc = "己方走棋" + moveDescInTraditional + " " + moveDescInNumbers;
                 sendMove(moveDesc);
             }
 
@@ -455,14 +455,19 @@ public class GameController implements EngineListener, SearchListener {
     private void sendMove(String moveDesc) {
         lastComputerMoveDesc = moveDesc;
         Globals.Companion.speak(moveDesc);
-        ToastUtils.Companion.showSnackBar("已发送电脑着法" + moveDesc);
+        sendMessage(moveDesc);
+        ToastUtils.Companion.showSnackBar("已发送己方着法" + moveDesc);
+    }
+
+    private void sendMessage(String message) {
+        Globals.Companion.getMessenger().send(message);
     }
 
     public void repeatLastComputerMove() {
         if (lastComputerMoveDesc != null && !lastComputerMoveDesc.isEmpty()) {
             sendMove(lastComputerMoveDesc);
         } else {
-            Globals.speak("电脑暂未走棋");
+            Globals.speak("己方暂未走棋");
         }
     }
 
