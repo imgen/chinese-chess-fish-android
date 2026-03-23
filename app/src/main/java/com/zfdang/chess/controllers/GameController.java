@@ -454,13 +454,13 @@ public class GameController implements EngineListener, SearchListener {
 
     private void sendMove(String moveDesc) {
         lastComputerMoveDesc = moveDesc;
-        Globals.Companion.speak(moveDesc);
+        Globals.speak(moveDesc);
         sendMessage(moveDesc);
-        ToastUtils.Companion.showSnackBar("已发送己方着法" + moveDesc);
+        ToastUtils.showSnackBar("已发送己方着法" + moveDesc);
     }
 
     private void sendMessage(String message) {
-        Globals.Companion.getMessenger().send(message);
+        Globals.getMessenger().send(message);
     }
 
     public void repeatLastComputerMove() {

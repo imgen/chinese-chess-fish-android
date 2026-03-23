@@ -19,6 +19,7 @@ class ToastUtils {
                 .show()
         }
 
+        @JvmStatic
         fun showSnackBar(message: CharSequence) {
             Snackbar.make(coordinatorLayout!!, message, Snackbar.LENGTH_LONG).show()
         }
