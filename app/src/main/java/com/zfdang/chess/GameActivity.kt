@@ -613,10 +613,15 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
 
     private fun speak(message: CharSequence) = speaker.speak(message)
 
-    private fun String.showSnackBarThenSpeakThenSend() {
+    private fun String.showSnackBarThenSpeak(): String {
         showSnackBar(this)
         speak(this)
+        return this
+    }
+
+    private fun String.sendToClient(): String {
         Globals.messenger.send(this)
+        return this
     }
 
     private fun handleCheckmateClientMessage(message: String) {
@@ -641,7 +646,7 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
                 if (!isRemoteGame) {
                     return
                 }
-                "撤销上一步棋".showSnackBarThenSpeakThenSend()
+                "撤销上一步棋".showSnackBarThenSpeak()
                 withdrawLastMoveDelayed()
             }
             COMMAND_END_REMOTE_GAME -> {
@@ -680,7 +685,8 @@ class GameActivity : AppCompatActivity(), View.OnTouchListener, ControllerListen
     }
 
     private fun sendInvalidMove() {
-        "无效着法".showSnackBarThenSpeakThenSend()
+        "无效着法".showSnackBarThenSpeak()
+            .sendToClient()
     }
 
     private fun moveRedDelayed(move: Move) {
